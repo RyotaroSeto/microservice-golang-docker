@@ -1,0 +1,93 @@
+services:
+  service-1:
+    container_name: service-1
+    build:
+      context: ./service-1
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app:delegated
+    networks:
+      - services_network
+
+  service-2:
+    container_name: service-2
+    build:
+      context: ./service-2
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./:/app:delegated
+    networks:
+      - services_network
+
+  zookeeper:
+    container_name: zookeeper
+    restart: always
+    image: zookeeper:3.9.0
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_PORT: 2181
+      ZOO_SERVERS: server.1=zookeeper:2888:3888
+    volumes:
+      - ./data/zookeeper/data:/data
+      - ./data/zookeeper/datalog:/datalog
+    networks:
+      - services_network
+
+  kafka:
+    container_name: kafka
+    restart: always
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    ports:
+      - "9091:9091"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka:19091,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-host.docker.internal}:9091
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - ./data/kafka/data:/var/lib/kafka/data
+    depends_on:
+      - zookeeper
+    networks:
+      - services_network
+
+  redis:
+    image: redis:6-alpine
+    restart: always
+    container_name: user_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - services_network
+
+  etcd:
+    container_name: etcd
+    image: gcr.io/etcd-development/etcd:v3.4.7
+    ports: ["12379:12379", "12380:12380"]
+    command: >-
+      /usr/local/bin/etcd
+      -name etcd
+      -data-dir /etcd-data
+      -listen-client-urls http://0.0.0.0:12379
+      -advertise-client-urls http://0.0.0.0:12379
+      -listen-peer-urls http://0.0.0.0:12380
+      -initial-advertise-peer-urls http://0.0.0.0:12380
+      -initial-cluster etcd=http://0.0.0.0:12380
+      -initial-cluster-token tkn
+      -initial-cluster-state new
+    networks:
+      - services_network
+
+networks:
+  services_network:
+    driver: bridge
