@@ -77,14 +77,26 @@ services:
     networks:
       - services_network
 
-  # redis:
-  #   image: redis:6-alpine
-  #   restart: always
-  #   container_name: user_redis
-  #   ports:
-  #     - "6379:6379"
-  #   networks:
-  #     - services_network
+  redis:
+    image: redis:6-alpine
+    restart: always
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - services_network
+
+  redisinsight:
+    container_name: redisinsight
+    image: redislabs/redisinsight:latest
+    ports:
+      - 8001:8001
+    volumes:
+      - ./redisinsight:/db
+    depends_on:
+      - redis
+    networks:
+      - services_network
 
   # etcd:
   #   container_name: etcd
