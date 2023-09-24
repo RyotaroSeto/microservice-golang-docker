@@ -61,6 +61,19 @@ services:
     networks:
       - services_network
 
+  kafdrop:
+    container_name: kafdrop
+    image: obsidiandynamics/kafdrop
+    restart: "no"
+    ports:
+      - "9000:9000"
+    environment:
+      KAFKA_BROKERCONNECT: "kafka:19091"
+    depends_on:
+      - kafka
+    networks:
+      - services_network
+
   redis:
     image: redis:6-alpine
     restart: always
