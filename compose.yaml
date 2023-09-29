@@ -26,13 +26,14 @@ services:
   zookeeper:
     container_name: zookeeper
     restart: always
-    image: confluentinc/cp-zookeeper:5.5.1
+    image: confluentinc/cp-zookeeper:7.3.2
     hostname: zookeeper
     ports:
-      - "32181:32181"
+      - "2181:2181"
     environment:
-      ZOOKEEPER_CLIENT_PORT: 32181
+      ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SERVER_ID: 1
     volumes:
       - ./data/zookeeper/data:/data
       - ./data/zookeeper/datalog:/datalog
@@ -42,11 +43,10 @@ services:
   kafka:
     container_name: kafka
     restart: always
-    image: confluentinc/cp-kafka:5.5.1
+    image: confluentinc/cp-kafka:7.3.2
     hostname: kafka
     ports:
       - "9092:9092"
-      - "2181:2181"
     environment:
       KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
       KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
@@ -55,8 +55,8 @@ services:
       KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
       KAFKA_RESTART_ATTEMPTS: "10"
       KAFKA_RESTART_DELAY: "5"
-      ZOOKEEPER_AUTOPURGE_PURGE_INTERVAL: "0"
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:32181"
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
     volumes:
       - ./data/kafka/data:/var/lib/kafka/data
     depends_on:
@@ -77,26 +77,9 @@ services:
     networks:
       - services_network
 
-  redis:
-    image: redis:6-alpine
-    restart: always
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - services_network
-
-  redisinsight:
-    container_name: redisinsight
-    image: redislabs/redisinsight:latest
-    ports:
-      - 8001:8001
-    volumes:
-      - ./redisinsight:/db
-    depends_on:
-      - redis
-    networks:
-      - services_network
+networks:
+  services_network:
+    driver: bridge
 
   # etcd:
   #   container_name: etcd
@@ -116,6 +99,36 @@ services:
   #   networks:
   #     - services_network
 
-networks:
-  services_network:
-    driver: bridge
+  # kafka-init-topics:
+  #   container_name: kafka-init-topics
+  #   image: confluentinc/cp-kafka:7.3.2
+  #   volumes:
+  #      - ./message.json:/data/message.json
+  #   depends_on:
+  #     - kafka
+  #   command: "cub kafka-ready -b kafka:29092 1 30 && \
+  #             kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181 && \
+  #             kafka-console-producer --broker-list kafka:29092 -topic second.users < /data/message.json'"
+  #   networks:
+  #     - services_network
+
+  # redis:
+  #   image: redis:6-alpine
+  #   restart: always
+  #   container_name: redis
+  #   ports:
+  #     - "6379:6379"
+  #   networks:
+  #     - services_network
+
+  # redisinsight:
+  #   container_name: redisinsight
+  #   image: redislabs/redisinsight:latest
+  #   ports:
+  #     - 8001:8001
+  #   volumes:
+  #     - ./redisinsight:/db
+  #   depends_on:
+  #     - redis
+  #   networks:
+  #     - services_network
