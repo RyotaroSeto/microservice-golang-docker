@@ -2,7 +2,7 @@ services:
   service-1:
     container_name: service-1
     build:
-      context: ./service-1
+      context: ./services/service-1
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
@@ -14,7 +14,7 @@ services:
   service-2:
     container_name: service-2
     build:
-      context: ./service-2
+      context: ./services/service-2
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
@@ -76,7 +76,6 @@ services:
       - kafka
     networks:
       - services_network
-
 networks:
   services_network:
     driver: bridge

@@ -3,7 +3,7 @@ FROM golang:1.21.1-alpine
 ENV GOOS="linux"
 ENV CGO_ENABLED=0
 ENV PACKAGES="ca-certificates git curl bash zsh make"
-ENV ROOT /app
+ENV ROOT /service-1
 
 RUN apk update \
     && apk add --no-cache ${PACKAGES} \

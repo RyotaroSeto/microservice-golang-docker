@@ -3,7 +3,7 @@ FROM golang:1.21.1-alpine
 ENV GOOS="linux"
 ENV CGO_ENABLED=0
 ENV PACKAGES="ca-certificates git curl bash zsh make"
-ENV ROOT /app
+ENV ROOT /service-2
 
 RUN apk update \
     && apk add --no-cache ${PACKAGES} \
@@ -26,6 +26,6 @@ WORKDIR ${ROOT}
 
 RUN go mod download
 
-EXPOSE 8080
+EXPOSE 8081
 
 CMD ["go", "run", "main.go"]
