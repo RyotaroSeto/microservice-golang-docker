@@ -1,0 +1,14 @@
+version: "3"
+
+tasks:
+  docker-prune:
+    desc: Remove Docker resources
+    cmds:
+      - docker system prune -f
+    silent: true
+
+  docker-network:
+    desc: Create Docker Network
+    cmds:
+      - docker network create services_network
+    silent: true
