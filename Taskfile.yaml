@@ -18,3 +18,21 @@ tasks:
     cmds:
       - docker compose exec kafka bash
     silent: true
+
+  etcd:
+    desc: Accecss bash etcd
+    cmds:
+      - docker compose exec etcd bash
+    silent: true
+
+  # put-etcd:
+  #   desc: Put etcd
+  #   cmds:
+  #     - curl -X POST -d '{"key": "hoge","value": "hogehoge"}' http://localhost:2378/v3/kv/put
+  #   silent: true
+
+  # read-etcd:
+  #   desc: Read etcd
+  #   cmds:
+  #     - curl -L http://localhost:2378/v3/kv/range -X POST -d '{"key": "hoge"}'
+  #   silent: true
