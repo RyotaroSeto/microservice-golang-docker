@@ -12,3 +12,9 @@ tasks:
     cmds:
       - docker network create services_network
     silent: true
+
+  kafka:
+    desc: Accecss bash kafka
+    cmds:
+      - docker compose exec kafka bash
+    silent: true

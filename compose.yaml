@@ -4,24 +4,29 @@ services:
     build:
       context: ./services/service-1
       dockerfile: Dockerfile
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # KAFKA_GROUP_ID: test-group
+      KAFKA_TOPIC: my-topic-1
     ports:
       - "8080:8080"
     volumes:
       - ./:/app:delegated
-    networks:
-      - services_network
+    depends_on:
+      kafka:
+        condition: service_healthy
 
-  service-2:
-    container_name: service-2
-    build:
-      context: ./services/service-2
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
-    volumes:
-      - ./:/app:delegated
-    networks:
-      - services_network
+  # service-2:
+  #   container_name: service-2
+  #   build:
+  #     context: ./services/service-2
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8081:8081"
+  #   volumes:
+  #     - ./:/app:delegated
+  #   depends_on:
+  #   - kafka
 
   zookeeper:
     container_name: zookeeper
@@ -34,11 +39,9 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SERVER_ID: 1
-    volumes:
-      - ./data/zookeeper/data:/data
-      - ./data/zookeeper/datalog:/datalog
-    networks:
-      - services_network
+    # volumes:
+    #   - ./data/zookeeper/data:/data
+    #   - ./data/zookeeper/datalog:/datalog
 
   kafka:
     container_name: kafka
@@ -48,21 +51,45 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_LISTENERS: "INTERNAL://:29092,EXTERNAL://:9092"
-      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
-      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
-      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: "6000"
-      KAFKA_RESTART_ATTEMPTS: "10"
-      KAFKA_RESTART_DELAY: "5"
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT: 6000
+      KAFKA_RESTART_ATTEMPTS: 10
+      KAFKA_RESTART_DELAY: 5
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-    volumes:
-      - ./data/kafka/data:/var/lib/kafka/data
+    # volumes:
+    #   - ./data/kafka/data:/var/lib/kafka/data
     depends_on:
       - zookeeper
-    networks:
-      - services_network
+    healthcheck:
+      test: ["CMD", "cub", "kafka-ready", "-b", "kafka:29092", "1", "5"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+  init-topics:
+    container_name: init-topics
+    image: confluentinc/cp-kafka:7.3.2
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:29092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic my-topic-1 --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic my-topic-2 --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
 
   kafdrop:
     container_name: kafdrop
@@ -73,12 +100,8 @@ services:
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
-      - kafka
-    networks:
-      - services_network
-networks:
-  services_network:
-    driver: bridge
+      kafka:
+        condition: service_healthy
 
   # etcd:
   #   container_name: etcd
@@ -98,18 +121,7 @@ networks:
   #   networks:
   #     - services_network
 
-  # kafka-init-topics:
-  #   container_name: kafka-init-topics
-  #   image: confluentinc/cp-kafka:7.3.2
-  #   volumes:
-  #      - ./message.json:/data/message.json
-  #   depends_on:
-  #     - kafka
-  #   command: "cub kafka-ready -b kafka:29092 1 30 && \
-  #             kafka-topics --create --topic second.users --partitions 3 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181 && \
-  #             kafka-console-producer --broker-list kafka:29092 -topic second.users < /data/message.json'"
-  #   networks:
-  #     - services_network
+
 
   # redis:
   #   image: redis:6-alpine
