@@ -10,6 +10,12 @@ env:
 
 jobs:
   test:
+    permissions:
+      pull-requests: write
+      actions: write
+      checks: write
+      contents: write
+
     name: Test application
     runs-on: ubuntu-latest
 
