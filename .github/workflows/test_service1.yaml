@@ -30,12 +30,12 @@ jobs:
         env:
           GO111MODULE: "on"
 
-      - uses: actions/cache@v3
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+      # - uses: actions/cache@v3
+      #   with:
+      #     path: ~/go/pkg/mod
+      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-go-
 
       - name: Install dependencies
         run: |
@@ -45,17 +45,12 @@ jobs:
       - name: Run tests Service1
         run: go test -v ${{ env.SERVICE }}/... -coverprofile=coverage.out
 
-      - uses: WillAbides/setup-go-faster@v1.8.0
-        with:
-          go-version: "1.20"
-
       - name: Lint
         uses: dominikh/staticcheck-action@v1.3.0
         with:
           version: "2023.1"
           install-go: false
           working-directory: ${{ env.SERVICE }}
-          cache-key: "1.20"
 
       - name: report coverage
         uses: k1LoW/octocov-action@v0
