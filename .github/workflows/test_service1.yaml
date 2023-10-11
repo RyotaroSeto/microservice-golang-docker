@@ -48,7 +48,7 @@ jobs:
       - name: Install staticcheck
         run: go install honnef.co/go/tools/cmd/staticcheck@latest
 
-      - name: Staticcheck
+      - name: Staticcheck1
         run: staticcheck ${{ env.SERVICE }}/...
 
       - name: report coverage
