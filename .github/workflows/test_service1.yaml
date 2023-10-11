@@ -1,4 +1,4 @@
-name: Test Service2
+name: Test Service1
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_call:
 
 env:
-  SERVICE: ./services/service-2
+  SERVICE: ./services/service-1
 
 jobs:
   test:
@@ -38,5 +38,5 @@ jobs:
           cd ${{ env.SERVICE }}
           go mod download
 
-      - name: Run tests Service2
+      - name: Run tests Service1
         run: go test -v ${{ env.SERVICE }}/...
