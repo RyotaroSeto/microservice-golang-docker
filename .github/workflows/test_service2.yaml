@@ -1,7 +1,7 @@
 name: Test Service2
 
 on:
-  pull_request:
+  push:
     branches-ignore:
       - main
   workflow_dispatch:
