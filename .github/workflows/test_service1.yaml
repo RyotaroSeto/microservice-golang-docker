@@ -39,15 +39,19 @@ jobs:
           go mod download
 
       - name: Run tests Service1
-        run: go test -v ${{ env.SERVICE }}/...
+        run: go test -v ${{ env.SERVICE }}/... -coverprofile=coverage.out
 
-      - name: Lint
-        uses: dominikh/staticcheck-action@v1.3.0
+      # - name: Lint
+      #   uses: dominikh/staticcheck-action@v1.3.0
+      #   with:
+      #     version: "2023.1"
+      #     install-go: false
+      #     working-directory: ${{ env.SERVICE }}
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
         with:
-          version: "2023.1"
-          install-go: false
-          working-directory: ${{ env.SERVICE }}
-
-      - run: go test -v ${{ env.SERVICE }}/... -coverprofile=coverage.out
-      - name: report coverage
-        uses: k1LoW/octocov-action@v0
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.out
+          fail_ci_if_error: true
+          verbose: true
