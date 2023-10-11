@@ -1,0 +1,52 @@
+name: Test Service2
+
+on:
+  pull_request:
+    branches-ignore:
+      - main
+  workflow_dispatch:
+  workflow_call:
+
+env:
+  SERVICE: ./services/service-2
+
+jobs:
+  test:
+    name: Test application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: ${{ env.SERVICE }}/go.mod
+        env:
+          GO111MODULE: "on"
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install dependencies
+        run: |
+          cd ${{ env.SERVICE }}
+          go mod download
+
+      - name: Run tests Service2
+        run: go test -v ${{ env.SERVICE }}/... -coverprofile=coverage.out
+
+      # - name: Lint
+      #   uses: dominikh/staticcheck-action@v1.3.0
+      #   with:
+      #     version: "2023.1"
+      #     install-go: false
+      #     working-directory: ${{ env.SERVICE }}
+
+      - name: report coverage
+        uses: k1LoW/octocov-action@v0

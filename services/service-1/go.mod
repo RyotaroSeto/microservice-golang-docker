@@ -6,6 +6,7 @@ require (
 	github.com/confluentinc/confluent-kafka-go/v2 v2.2.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/spf13/viper v1.16.0
+	gopkg.in/go-playground/assert.v1 v1.2.1
 )
 
 require (
