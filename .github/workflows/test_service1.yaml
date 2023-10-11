@@ -46,12 +46,12 @@ jobs:
       - name: Run tests Service1
         run: go test -v ${{ env.SERVICE }}/... -coverprofile=coverage.out
 
-      - name: Lint
-        uses: dominikh/staticcheck-action@v1.3.0
-        with:
-          version: "2023.1"
-          install-go: false
-          working-directory: ${{ env.SERVICE }}
+      # - name: Lint
+      #   uses: dominikh/staticcheck-action@v1.3.0 #version 1.21対応してなさそう
+      #   with:
+      #     version: "2023.1"
+      #     install-go: false
+      #     working-directory: ${{ env.SERVICE }}
 
       - name: report coverage
         uses: k1LoW/octocov-action@v0
