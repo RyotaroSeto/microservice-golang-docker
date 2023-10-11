@@ -38,9 +38,5 @@ jobs:
           cd ${{ env.SERVICE }}
           go mod download
 
-      - name: Run tests ClusterManage
+      - name: Run tests Service2
         run: go test -v ${{ env.SERVICE }}/...
-
-      - uses: dominikh/staticcheck-action@v1.3.0
-        with:
-          install-go: false
