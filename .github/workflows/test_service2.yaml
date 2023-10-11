@@ -34,7 +34,9 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Install dependencies
-        run: go mod download
+        run: |
+          cd ${{ env.SERVICE }}
+          go mod download
 
       - name: Run tests ClusterManage
         run: go test -v ${{ env.SERVICE }}/...
