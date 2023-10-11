@@ -30,12 +30,12 @@ jobs:
         env:
           GO111MODULE: "on"
 
-      # - uses: actions/cache@v3
-      #   with:
-      #     path: ~/go/pkg/mod
-      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-go-
+      - uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Install dependencies
         run: |
@@ -48,15 +48,8 @@ jobs:
       - name: Install staticcheck
         run: go install honnef.co/go/tools/cmd/staticcheck@latest
 
-      - name: Staticcheck2
+      - name: Staticcheck
         run: staticcheck ${{ env.SERVICE }}/...
-
-      # - name: Lint
-      #   uses: dominikh/staticcheck-action@v1.3.0 #version 1.21対応してなさそう
-      #   with:
-      #     version: "2023.1"
-      #     install-go: false
-      #     working-directory: ${{ env.SERVICE }}
 
       - name: report coverage
         uses: k1LoW/octocov-action@v0
